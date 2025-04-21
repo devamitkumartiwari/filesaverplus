@@ -23,6 +23,6 @@ FileSaverPlus is a mobile application that allows users to save and manage files
 
 ### Clone the repository:
 ```bash
-git clone https://github.com/yourusername/filesaverplus.git
+git clone https://github.com/devamitkumartiwari/filesaverplus.git
 
 
