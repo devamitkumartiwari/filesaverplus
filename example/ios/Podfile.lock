@@ -1,0 +1,22 @@
+PODS:
+  - filesaverplus (0.0.1):
+    - Flutter
+  - Flutter (1.0.0)
+
+DEPENDENCIES:
+  - filesaverplus (from `.symlinks/plugins/filesaverplus/ios`)
+  - Flutter (from `Flutter`)
+
+EXTERNAL SOURCES:
+  filesaverplus:
+    :path: ".symlinks/plugins/filesaverplus/ios"
+  Flutter:
+    :path: Flutter
+
+SPEC CHECKSUMS:
+  filesaverplus: cc89d8c0d27f54e1341732a412d56d92c1d4164b
+  Flutter: e0871f40cf51350855a761d2e70bf5af5b9b5de7
+
+PODFILE CHECKSUM: 251cb053df7158f337c0712f2ab29f4e0fa474ce
+
+COCOAPODS: 1.16.2
