@@ -24,11 +24,7 @@ class FileSaverPlus {
   }
 
   /// Saves a single file by internally using the multiple files method.
-  Future<void> saveFile(
-      Uint8List data,
-      String fileName,
-      String mimeType,
-      ) {
+  Future<void> saveFile(Uint8List data, String fileName, String mimeType) {
     return saveMultipleFiles(
       dataList: [data],
       fileNameList: [fileName],

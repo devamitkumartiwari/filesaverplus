@@ -27,7 +27,8 @@ class MethodChannelFileSaverPlus extends FileSaverPlusPlatform {
     required List<String> mimeTypeList,
   }) async {
     // Validate input lengths
-    if (dataList.length != fileNameList.length || dataList.length != mimeTypeList.length) {
+    if (dataList.length != fileNameList.length ||
+        dataList.length != mimeTypeList.length) {
       throw ArgumentError('All input lists must have the same length.');
     }
 
@@ -53,7 +54,8 @@ class MethodChannelFileSaverPlus extends FileSaverPlusPlatform {
       if (fileNameCount.containsKey(name)) {
         fileNameCount[name] = fileNameCount[name]! + 1;
         final extensionIndex = name.lastIndexOf('.');
-        final base = extensionIndex != -1 ? name.substring(0, extensionIndex) : name;
+        final base =
+            extensionIndex != -1 ? name.substring(0, extensionIndex) : name;
         final ext = extensionIndex != -1 ? name.substring(extensionIndex) : '';
         name = '${base}_${fileNameCount[name]}$ext';
       } else {

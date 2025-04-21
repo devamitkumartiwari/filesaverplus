@@ -23,22 +23,22 @@ class _MyAppState extends State<MyApp> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      home: Builder( // add Builder to make sure context is correct
-        builder: (context) => Scaffold(
-          appBar: AppBar(
-            title: const Text('FileSaverPlus Plugin'),
-          ),
-          body: const Center(
-            child: Text(
-              'Press the button to save files in Downloads folder.',
+      home: Builder(
+        // add Builder to make sure context is correct
+        builder:
+            (context) => Scaffold(
+              appBar: AppBar(title: const Text('FileSaverPlus Plugin')),
+              body: const Center(
+                child: Text(
+                  'Press the button to save files in Downloads folder.',
+                ),
+              ),
+              floatingActionButton: FloatingActionButton(
+                onPressed: () => _saveFile(context),
+                tooltip: 'Save Files',
+                child: const Icon(Icons.save),
+              ),
             ),
-          ),
-          floatingActionButton: FloatingActionButton(
-            onPressed: () => _saveFile(context),
-            tooltip: 'Save Files',
-            child: const Icon(Icons.save),
-          ),
-        ),
       ),
     );
   }
@@ -62,9 +62,9 @@ class _MyAppState extends State<MyApp> {
       );
     } catch (e) {
       debugPrint('Error saving files: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to save files: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Failed to save files: $e')));
     }
   }
 }

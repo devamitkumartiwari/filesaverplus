@@ -1,6 +1,8 @@
 name: filesaverplus
 description: "A new Flutter project."
 version: 0.0.1
+repository: https://github.com/devamitkumartiwari/filesaverplus.git
+
 homepage:
 
 environment:
