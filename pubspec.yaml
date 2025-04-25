@@ -1,6 +1,6 @@
 name: filesaverplus
-description: "FileSaverPlus is a Flutter plugin that allows you to easily save files to the device’s local storage, providing cross-platform support for Android and iOS. With this plugin, you can save text, images, or any file data to a specified directory on the device. It also handles file permissions and ensures a seamless experience for saving files in a secure and efficient way."
-version: 0.0.1
+description: "FileSaverPlus is a Flutter plugin that allows you to easily save files to the device’s local storage, providing cross-platform support for Android and iOS."
+version: 0.0.2
 repository: https://github.com/devamitkumartiwari/filesaverplus.git
 
 homepage:

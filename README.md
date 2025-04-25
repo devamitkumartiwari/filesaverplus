@@ -3,6 +3,24 @@
 
 FileSaverPlus is a mobile application that allows users to save and manage files efficiently on their devices. The app supports various file formats and provides easy access to saved files.
 
+## Install plugin
+add this line into pubspec.yaml
+```
+filesaverplus: ^0.0.2
+```
+## Example uses
+```
+// import package.
+import 'package:filesaverplus/filesaverplus.dart';
+
+// for saving single file.
+await FileSaverPlus().saveFile(Uint8List fileData, String fileName, String mimeType );
+
+
+// for saving multiple files.
+await FileSaverPlus().saveMultipleFiles(List<Uint8List> fileDataList, List<String> fileNameList, List<String> mimeTypeList)
+```
+
 ## Features
 - Save files from different sources.
 - View and manage saved files.
