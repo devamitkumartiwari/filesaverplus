@@ -1,109 +1,155 @@
 package com.amit.filesaverplus
 
+
+import android.Manifest
 import android.app.Activity
 import android.content.ContentValues
 import android.content.Context
-import android.os.BatteryManager
+import android.content.pm.PackageManager
 import android.os.Build
+import android.os.Environment
 import android.os.ParcelFileDescriptor
 import android.provider.MediaStore
 import android.util.Log
-import androidx.annotation.NonNull
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import io.flutter.embedding.engine.plugins.FlutterPlugin
 import io.flutter.embedding.engine.plugins.activity.ActivityAware
 import io.flutter.embedding.engine.plugins.activity.ActivityPluginBinding
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
-import io.flutter.plugin.common.MethodChannel.MethodCallHandler
-import io.flutter.plugin.common.MethodChannel.Result
-
+import java.io.File
 import java.io.FileOutputStream
 
-class FilesaverplusPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
-  private lateinit var context: Context
-  private var currentActivity: Activity? = null
-  private lateinit var channel: MethodChannel
+class FilesaverplusPlugin : FlutterPlugin, MethodChannel.MethodCallHandler, ActivityAware {
 
-  override fun onAttachedToEngine(@NonNull flutterPluginBinding: FlutterPlugin.FlutterPluginBinding) {
-    context = flutterPluginBinding.applicationContext
-    channel = MethodChannel(flutterPluginBinding.binaryMessenger, "filesaverplus")
-    channel.setMethodCallHandler(this)
-  }
+    private lateinit var context: Context
+    private lateinit var channel: MethodChannel
+    private var activity: Activity? = null
+    private var pendingCall: MethodCall? = null
+    private var pendingResult: MethodChannel.Result? = null
+    private val requestCode = 39285
 
-  override fun onMethodCall(@NonNull call: MethodCall, @NonNull result: Result) {
-    when (call.method) {
-      "getPlatformVersion" -> {
-        result.success("Android ${Build.VERSION.RELEASE}")
-      }
-      "getBatteryPercentage" -> {
-        val batteryManager = context.getSystemService(Context.BATTERY_SERVICE) as BatteryManager
-        val percentage = batteryManager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY)
-        result.success(percentage)
-      }
-      "saveMultipleFiles" -> {
+    override fun onAttachedToEngine(flutterPluginBinding: FlutterPlugin.FlutterPluginBinding) {
+        context = flutterPluginBinding.applicationContext
+        channel = MethodChannel(flutterPluginBinding.binaryMessenger, "filesaverplus")
+        channel.setMethodCallHandler(this)
+    }
+
+    override fun onDetachedFromEngine(binding: FlutterPlugin.FlutterPluginBinding) {
+        channel.setMethodCallHandler(null)
+    }
+
+    override fun onMethodCall(call: MethodCall, result: MethodChannel.Result) {
+        if (call.method == "saveMultipleFiles") {
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q &&
+                ContextCompat.checkSelfPermission(
+                    context,
+                    Manifest.permission.WRITE_EXTERNAL_STORAGE
+                )
+                != PackageManager.PERMISSION_GRANTED
+            ) {
+
+                activity?.let {
+                    pendingCall = call
+                    pendingResult = result
+                    ActivityCompat.requestPermissions(
+                        it,
+                        arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE),
+                        requestCode
+                    )
+                } ?: result.error("ACTIVITY_NOT_ATTACHED", "Activity is null", null)
+            } else {
+                handleSaveFiles(call, result)
+            }
+        } else {
+            result.notImplemented()
+        }
+    }
+
+    private fun handleSaveFiles(call: MethodCall, result: MethodChannel.Result) {
         val dataList: List<ByteArray>? = call.argument("dataList")
         val fileNameList: List<String>? = call.argument("fileNameList")
         val mimeTypeList: List<String>? = call.argument("mimeTypeList")
 
-        if (dataList != null && fileNameList != null && mimeTypeList != null) {
-          saveMultipleFiles(dataList, fileNameList, mimeTypeList)
-          result.success(null)
-        } else {
-          result.error("INVALID_ARGUMENTS", "Missing file data", null)
-        }
-      }
-      else -> result.notImplemented()
-    }
-  }
-
-  private fun saveMultipleFiles(dataList: List<ByteArray>, fileNameList: List<String>, mimeTypeList: List<String>) {
-    val resolver = context.contentResolver
-    val collection = MediaStore.Downloads.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY)
-
-    for (i in dataList.indices) {
-      val fileName = fileNameList[i]
-      val mimeType = mimeTypeList[i]
-      val data = dataList[i]
-
-      val values = ContentValues().apply {
-        put(MediaStore.Downloads.DISPLAY_NAME, fileName)
-        put(MediaStore.Downloads.MIME_TYPE, mimeType)
-        put(MediaStore.Downloads.IS_PENDING, 1)
-      }
-
-      val itemUri = resolver.insert(collection, values)
-
-      itemUri?.let {
-        resolver.openFileDescriptor(it, "w")?.use { pfd ->
-          FileOutputStream(pfd.fileDescriptor).use { fos ->
-            fos.write(data)
-          }
+        if (dataList == null || fileNameList == null || mimeTypeList == null) {
+            result.error("INVALID_ARGUMENTS", "Missing arguments", null)
+            return
         }
 
-        values.clear()
-        values.put(MediaStore.Downloads.IS_PENDING, 0)
-        resolver.update(it, values, null, null)
-      } ?: Log.e("FilesaverplusPlugin", "Failed to insert file: $fileName")
+        for (i in dataList.indices) {
+            val data = dataList[i]
+            val fileName = fileNameList[i]
+            val mimeType = mimeTypeList[i]
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                val resolver = context.contentResolver
+                val contentValues = ContentValues().apply {
+                    put(MediaStore.Downloads.DISPLAY_NAME, fileName)
+                    put(MediaStore.Downloads.MIME_TYPE, mimeType)
+                    put(MediaStore.Downloads.IS_PENDING, 1)
+                }
+
+                val uri = resolver.insert(
+                    MediaStore.Downloads.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY),
+                    contentValues
+                )
+
+                uri?.let {
+                    resolver.openFileDescriptor(it, "w")?.use { pfd ->
+                        FileOutputStream(pfd.fileDescriptor).use { fos ->
+                            fos.write(data)
+                        }
+                    }
+                    contentValues.clear()
+                    contentValues.put(MediaStore.Downloads.IS_PENDING, 0)
+                    resolver.update(it, contentValues, null, null)
+                }
+            } else {
+                val file = File(
+                    Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS),
+                    fileName
+                )
+                FileOutputStream(file).use { fos ->
+                    fos.write(data)
+                }
+            }
+        }
+
+        result.success(null)
     }
-  }
 
-  override fun onDetachedFromEngine(@NonNull binding: FlutterPlugin.FlutterPluginBinding) {
-    channel.setMethodCallHandler(null)
-  }
+    override fun onAttachedToActivity(binding: ActivityPluginBinding) {
+        activity = binding.activity
+        binding.addRequestPermissionsResultListener { requestCode, permissions, grantResults ->
+            if (requestCode == this.requestCode) {
+                if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    pendingCall?.let { call ->
+                        pendingResult?.let { result ->
+                            handleSaveFiles(call, result)
+                        }
+                    }
+                } else {
+                    pendingResult?.error("PERMISSION_DENIED", "Write permission not granted", null)
+                }
+                pendingCall = null
+                pendingResult = null
+                true
+            } else {
+                false
+            }
+        }
+    }
 
-  override fun onAttachedToActivity(binding: ActivityPluginBinding) {
-    currentActivity = binding.activity
-  }
+    override fun onDetachedFromActivity() {
+        activity = null
+    }
 
-  override fun onDetachedFromActivityForConfigChanges() {
-    currentActivity = null
-  }
+    override fun onReattachedToActivityForConfigChanges(binding: ActivityPluginBinding) {
+        activity = binding.activity
+    }
 
-  override fun onReattachedToActivityForConfigChanges(binding: ActivityPluginBinding) {
-    currentActivity = binding.activity
-  }
-
-  override fun onDetachedFromActivity() {
-    currentActivity = null
-  }
+    override fun onDetachedFromActivityForConfigChanges() {
+        activity = null
+    }
 }
