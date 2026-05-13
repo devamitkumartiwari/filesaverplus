@@ -1,5 +1,7 @@
 import 'dart:typed_data';
+
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
+
 import 'filesaverplus_method_channel.dart';
 
 abstract class FileSaverPlusPlatform extends PlatformInterface {
@@ -26,17 +28,21 @@ abstract class FileSaverPlusPlatform extends PlatformInterface {
     throw UnimplementedError('platformVersion() has not been implemented.');
   }
 
-  /// Returns the current battery percentage.
+  /// Returns the current battery percentage (0–100).
   Future<int?> get batteryPercentage {
     throw UnimplementedError('batteryPercentage() has not been implemented.');
   }
 
   /// Saves multiple files using platform-specific implementation.
   ///
+  /// Returns a list of saved file paths (or identifiers) for each file.
+  /// On iOS the paths are temporary staging locations; on Web they indicate
+  /// that a browser download was triggered.
+  ///
   /// [dataList]: List of file data in bytes.
   /// [fileNameList]: List of file names with extensions.
   /// [mimeTypeList]: List of corresponding MIME types.
-  Future<void> saveMultipleFiles({
+  Future<List<String>> saveMultipleFiles({
     required List<Uint8List> dataList,
     required List<String> fileNameList,
     required List<String> mimeTypeList,

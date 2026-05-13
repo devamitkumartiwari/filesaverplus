@@ -1,16 +1,16 @@
 package com.amit.filesaverplus
 
-
 import android.Manifest
 import android.app.Activity
 import android.content.ContentValues
 import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
+import android.net.Uri
+import android.os.BatteryManager
 import android.os.Build
 import android.os.Environment
-import android.os.ParcelFileDescriptor
 import android.provider.MediaStore
-import android.util.Log
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import io.flutter.embedding.engine.plugins.FlutterPlugin
@@ -41,29 +41,42 @@ class FilesaverplusPlugin : FlutterPlugin, MethodChannel.MethodCallHandler, Acti
     }
 
     override fun onMethodCall(call: MethodCall, result: MethodChannel.Result) {
-        if (call.method == "saveMultipleFiles") {
-            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q &&
-                ContextCompat.checkSelfPermission(
-                    context,
-                    Manifest.permission.WRITE_EXTERNAL_STORAGE
-                )
-                != PackageManager.PERMISSION_GRANTED
-            ) {
-
-                activity?.let {
-                    pendingCall = call
-                    pendingResult = result
-                    ActivityCompat.requestPermissions(
-                        it,
-                        arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE),
-                        requestCode
-                    )
-                } ?: result.error("ACTIVITY_NOT_ATTACHED", "Activity is null", null)
-            } else {
-                handleSaveFiles(call, result)
+        when (call.method) {
+            "getPlatformVersion" -> {
+                result.success("Android ${Build.VERSION.RELEASE}")
             }
-        } else {
-            result.notImplemented()
+
+            "getBatteryPercentage" -> {
+                val bm = context.getSystemService(Context.BATTERY_SERVICE) as? BatteryManager
+                val level = bm?.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY)
+                if (level == null || level == -1) {
+                    result.error("UNAVAILABLE", "Battery level not available.", null)
+                } else {
+                    result.success(level)
+                }
+            }
+
+            "saveMultipleFiles" -> {
+                if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q &&
+                    ContextCompat.checkSelfPermission(
+                        context, Manifest.permission.WRITE_EXTERNAL_STORAGE
+                    ) != PackageManager.PERMISSION_GRANTED
+                ) {
+                    activity?.let {
+                        pendingCall = call
+                        pendingResult = result
+                        ActivityCompat.requestPermissions(
+                            it,
+                            arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE),
+                            requestCode
+                        )
+                    } ?: result.error("ACTIVITY_NOT_ATTACHED", "Activity is null", null)
+                } else {
+                    handleSaveFiles(call, result)
+                }
+            }
+
+            else -> result.notImplemented()
         }
     }
 
@@ -76,6 +89,8 @@ class FilesaverplusPlugin : FlutterPlugin, MethodChannel.MethodCallHandler, Acti
             result.error("INVALID_ARGUMENTS", "Missing arguments", null)
             return
         }
+
+        val savedPaths = mutableListOf<String>()
 
         for (i in dataList.indices) {
             val data = dataList[i]
@@ -95,39 +110,43 @@ class FilesaverplusPlugin : FlutterPlugin, MethodChannel.MethodCallHandler, Acti
                     contentValues
                 )
 
-                uri?.let {
-                    resolver.openFileDescriptor(it, "w")?.use { pfd ->
+                if (uri != null) {
+                    resolver.openFileDescriptor(uri, "w")?.use { pfd ->
                         FileOutputStream(pfd.fileDescriptor).use { fos ->
                             fos.write(data)
                         }
                     }
                     contentValues.clear()
                     contentValues.put(MediaStore.Downloads.IS_PENDING, 0)
-                    resolver.update(it, contentValues, null, null)
+                    resolver.update(uri, contentValues, null, null)
+                    savedPaths.add(uri.toString())
+                } else {
+                    result.error(
+                        "WRITE_FAILED",
+                        "Failed to insert into MediaStore for $fileName",
+                        null
+                    )
+                    return
                 }
             } else {
-                val file = File(
-                    Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS),
-                    fileName
-                )
-                FileOutputStream(file).use { fos ->
-                    fos.write(data)
-                }
+                val downloadsDir =
+                    Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+                val file = File(downloadsDir, fileName)
+                FileOutputStream(file).use { fos -> fos.write(data) }
+                savedPaths.add(file.absolutePath)
             }
         }
 
-        result.success(null)
+        result.success(savedPaths)
     }
 
     override fun onAttachedToActivity(binding: ActivityPluginBinding) {
         activity = binding.activity
-        binding.addRequestPermissionsResultListener { requestCode, permissions, grantResults ->
-            if (requestCode == this.requestCode) {
+        binding.addRequestPermissionsResultListener { code, _, grantResults ->
+            if (code == requestCode) {
                 if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     pendingCall?.let { call ->
-                        pendingResult?.let { result ->
-                            handleSaveFiles(call, result)
-                        }
+                        pendingResult?.let { res -> handleSaveFiles(call, res) }
                     }
                 } else {
                     pendingResult?.error("PERMISSION_DENIED", "Write permission not granted", null)

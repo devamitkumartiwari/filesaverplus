@@ -1,5 +1,5 @@
 PODS:
-  - filesaverplus (0.0.1):
+  - filesaverplus (0.0.5):
     - Flutter
   - Flutter (1.0.0)
 
@@ -14,8 +14,8 @@ EXTERNAL SOURCES:
     :path: Flutter
 
 SPEC CHECKSUMS:
-  filesaverplus: cc89d8c0d27f54e1341732a412d56d92c1d4164b
-  Flutter: e0871f40cf51350855a761d2e70bf5af5b9b5de7
+  filesaverplus: 47e074f10f07f10b218035a406686cf2bf13ae52
+  Flutter: cabc95a1d2626b1b06e7179b784ebcf0c0cde467
 
 PODFILE CHECKSUM: 251cb053df7158f337c0712f2ab29f4e0fa474ce
 

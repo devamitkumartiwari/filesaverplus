@@ -5,7 +5,6 @@ import 'filesaverplus_platform_interface.dart';
 
 /// An implementation of [FileSaverPlusPlatform] that uses method channels.
 class MethodChannelFileSaverPlus extends FileSaverPlusPlatform {
-  /// The method channel used to interact with the native platform.
   @visibleForTesting
   final MethodChannel methodChannel = const MethodChannel('filesaverplus');
 
@@ -20,18 +19,16 @@ class MethodChannelFileSaverPlus extends FileSaverPlusPlatform {
   }
 
   @override
-  Future<void> saveMultipleFiles({
+  Future<List<String>> saveMultipleFiles({
     required List<Uint8List> dataList,
     required List<String> fileNameList,
     required List<String> mimeTypeList,
   }) async {
-    // Validate input lengths
     if (dataList.length != fileNameList.length ||
         dataList.length != mimeTypeList.length) {
       throw ArgumentError('All input lists must have the same length.');
     }
 
-    // Validate data content
     for (int i = 0; i < dataList.length; i++) {
       if (dataList[i].isEmpty) {
         throw ArgumentError('Data at index $i is empty.');
@@ -44,7 +41,7 @@ class MethodChannelFileSaverPlus extends FileSaverPlusPlatform {
       }
     }
 
-    // Ensure unique filenames
+    // Ensure unique filenames by appending a counter to duplicates.
     final Map<String, int> fileNameCount = {};
     final List<String> uniqueFileNames = [];
 
@@ -64,11 +61,13 @@ class MethodChannelFileSaverPlus extends FileSaverPlusPlatform {
     }
 
     try {
-      await methodChannel.invokeMethod('saveMultipleFiles', {
-        'dataList': dataList,
-        'fileNameList': uniqueFileNames,
-        'mimeTypeList': mimeTypeList,
-      });
+      final result = await methodChannel
+          .invokeMethod<List<dynamic>>('saveMultipleFiles', {
+            'dataList': dataList,
+            'fileNameList': uniqueFileNames,
+            'mimeTypeList': mimeTypeList,
+          });
+      return result?.cast<String>() ?? [];
     } on PlatformException catch (e) {
       debugPrint('PlatformException: ${e.message}');
       rethrow;
