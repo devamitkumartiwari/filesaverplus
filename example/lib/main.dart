@@ -243,31 +243,29 @@ class _DemoPageState extends State<DemoPage> {
 
           // ── log panel ──────────────────────────────────────────────────
           Expanded(
-            child:
-                _log.isEmpty
-                    ? const Center(
-                      child: Text(
-                        'Tap an action above — results appear here.',
-                        style: TextStyle(color: Colors.grey),
-                      ),
-                    )
-                    : ListView.separated(
-                      padding: const EdgeInsets.all(12),
-                      itemCount: _log.length,
-                      separatorBuilder: (_, __) => const SizedBox(height: 4),
-                      itemBuilder: (context, i) {
-                        final entry = _log[i];
-                        return Text(
-                          entry.message,
-                          style: TextStyle(
-                            fontFamily: 'monospace',
-                            fontSize: 12,
-                            color:
-                                entry.isError ? Colors.red : Colors.green[800],
-                          ),
-                        );
-                      },
+            child: _log.isEmpty
+                ? const Center(
+                    child: Text(
+                      'Tap an action above — results appear here.',
+                      style: TextStyle(color: Colors.grey),
                     ),
+                  )
+                : ListView.separated(
+                    padding: const EdgeInsets.all(12),
+                    itemCount: _log.length,
+                    separatorBuilder: (_, _) => const SizedBox(height: 4),
+                    itemBuilder: (context, i) {
+                      final entry = _log[i];
+                      return Text(
+                        entry.message,
+                        style: TextStyle(
+                          fontFamily: 'monospace',
+                          fontSize: 12,
+                          color: entry.isError ? Colors.red : Colors.green[800],
+                        ),
+                      );
+                    },
+                  ),
           ),
 
           if (_busy)
@@ -320,8 +318,9 @@ class _ActionTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color =
-        isDestructive ? Colors.red : Theme.of(context).colorScheme.primary;
+    final color = isDestructive
+        ? Colors.red
+        : Theme.of(context).colorScheme.primary;
 
     return Card(
       margin: const EdgeInsets.symmetric(vertical: 3),

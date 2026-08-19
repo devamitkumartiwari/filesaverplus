@@ -162,11 +162,17 @@ public class FilesaverplusPlugin: NSObject, FlutterPlugin {
     }
 
     private func rootViewController() -> UIViewController? {
-        if let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
-           let root = scene.windows.first(where: { $0.isKeyWindow })?.rootViewController {
-            return root
-        }
-        return UIApplication.shared.keyWindow?.rootViewController
+        let windowScenes = UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }
+
+        // Prefer the foreground-active scene so this behaves correctly when an
+        // app has multiple concurrent scenes (iPad Stage Manager, Slide Over,
+        // multi-window). Fall back to any other connected scene if none is
+        // currently active (e.g. called during a scene transition).
+        let scene = windowScenes.first { $0.activationState == .foregroundActive } ?? windowScenes.first
+        guard let scene else { return nil }
+
+        let window = scene.windows.first(where: { $0.isKeyWindow }) ?? scene.windows.first
+        return window?.rootViewController
     }
 
     private func cleanupTemporaryFiles(urls: [URL]) {

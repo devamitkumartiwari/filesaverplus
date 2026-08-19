@@ -19,7 +19,7 @@ Add to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  filesaverplus: ^0.0.5
+  filesaverplus: ^0.0.6
 ```
 
 Then run:
@@ -46,11 +46,24 @@ For Android 9 (API 28) only, add this permission to `AndroidManifest.xml`. Andro
 
 ### iOS
 
-**Minimum version:** iOS 13.0
+**Minimum version:** iOS 16.0
 
 No additional configuration needed. Files are shared via the system share sheet and the user selects the destination.
 
-### Web, Windows, Linux, macOS
+### macOS
+
+**Minimum version:** macOS 10.14
+
+If your app has App Sandbox enabled (the default for `flutter create` macOS apps — check `macos/Runner/*.entitlements`), add this entitlement so `NSSavePanel` is actually allowed to write to the location the user picks:
+
+```xml
+<key>com.apple.security.files.user-selected.read-write</key>
+<true/>
+```
+
+Without it, every save fails with a sandbox permission error even though the save panel itself opens fine.
+
+### Web, Windows, Linux
 
 No additional setup required.
 

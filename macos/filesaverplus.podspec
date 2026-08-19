@@ -10,7 +10,7 @@ Pod::Spec.new do |s|
   s.author           = { 'Amit Kumar Tiwari' => 'amtechnovation@gmail.com' }
 
   s.source           = { :path => '.' }
-  s.source_files     = 'Classes/**/*'
+  s.source_files     = 'filesaverplus/Sources/filesaverplus/**/*.swift'
   s.dependency 'FlutterMacOS'
 
   s.platform = :osx, '10.14'

@@ -50,8 +50,9 @@ class MethodChannelFileSaverPlus extends FileSaverPlusPlatform {
       if (fileNameCount.containsKey(name)) {
         fileNameCount[name] = fileNameCount[name]! + 1;
         final extensionIndex = name.lastIndexOf('.');
-        final base =
-            extensionIndex != -1 ? name.substring(0, extensionIndex) : name;
+        final base = extensionIndex != -1
+            ? name.substring(0, extensionIndex)
+            : name;
         final ext = extensionIndex != -1 ? name.substring(extensionIndex) : '';
         name = '${base}_${fileNameCount[name]}$ext';
       } else {
@@ -61,12 +62,14 @@ class MethodChannelFileSaverPlus extends FileSaverPlusPlatform {
     }
 
     try {
-      final result = await methodChannel
-          .invokeMethod<List<dynamic>>('saveMultipleFiles', {
-            'dataList': dataList,
-            'fileNameList': uniqueFileNames,
-            'mimeTypeList': mimeTypeList,
-          });
+      final result = await methodChannel.invokeMethod<List<dynamic>>(
+        'saveMultipleFiles',
+        {
+          'dataList': dataList,
+          'fileNameList': uniqueFileNames,
+          'mimeTypeList': mimeTypeList,
+        },
+      );
       return result?.cast<String>() ?? [];
     } on PlatformException catch (e) {
       debugPrint('PlatformException: ${e.message}');

@@ -32,10 +32,9 @@ class FileSaverPlusWeb extends FileSaverPlusPlatform {
         web.BlobPropertyBag(type: mimeTypeList[i]),
       );
       final url = web.URL.createObjectURL(blob);
-      final anchor =
-          web.document.createElement('a') as web.HTMLAnchorElement
-            ..href = url
-            ..download = fileNameList[i];
+      final anchor = web.document.createElement('a') as web.HTMLAnchorElement
+        ..href = url
+        ..download = fileNameList[i];
 
       web.document.body?.append(anchor);
       anchor.click();
