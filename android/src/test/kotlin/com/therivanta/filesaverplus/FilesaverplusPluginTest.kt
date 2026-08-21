@@ -1,4 +1,4 @@
-package com.amit.filesaverplus
+package com.therivanta.filesaverplus
 
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel

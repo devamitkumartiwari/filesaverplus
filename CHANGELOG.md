@@ -1,3 +1,10 @@
+## 1.0.0
+
+* Android: downgraded Gradle `9.7.0` → `9.3.1`, AGP `9.3.1` → `9.1.0`, and Kotlin `2.3.21` → `2.4.0` — AGP 9.3.1 requires Gradle ≥9.5.0, so the Gradle downgrade also required dropping AGP to a version actually compatible with it.
+* Android: `kotlin-android` is now applied conditionally based on AGP major version instead of unconditionally via `id("kotlin-android")` — the unconditional form can silently fail to compile Kotlin sources under some AGP/Gradle declarative `plugins{}` configurations.
+* Android: removed a stray, non-functional `android.minSdkVersion=29` line from `gradle-wrapper.properties`.
+* Adopted stricter analyzer rules: `strict-casts`, `strict-raw-types`, `cancel_subscriptions`, `close_sinks`, `unawaited_futures`.
+
 ## 0.0.6
 
 * Raised the minimum supported Flutter version to 3.24.0 (Dart 3.13.0) — the version Swift Package Manager plugin support was introduced.

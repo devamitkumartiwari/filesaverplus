@@ -1,20 +1,14 @@
 PODS:
-  - filesaverplus (0.1.0):
-    - FlutterMacOS
   - FlutterMacOS (1.0.0)
 
 DEPENDENCIES:
-  - filesaverplus (from `Flutter/ephemeral/.symlinks/plugins/filesaverplus/macos`)
   - FlutterMacOS (from `Flutter/ephemeral`)
 
 EXTERNAL SOURCES:
-  filesaverplus:
-    :path: Flutter/ephemeral/.symlinks/plugins/filesaverplus/macos
   FlutterMacOS:
     :path: Flutter/ephemeral
 
 SPEC CHECKSUMS:
-  filesaverplus: 2a8e88b17d31220ff0fb056d38dfb1f46b0103fa
   FlutterMacOS: c232990155153907050900a2e175c7773903ba4e
 
 PODFILE CHECKSUM: 1e95c36afbfd1cb6423ceca4de7a8e1b256fb6ac

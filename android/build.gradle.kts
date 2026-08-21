@@ -1,4 +1,4 @@
-group = "com.amit.filesaverplus"
+group = "com.therivanta.filesaverplus"
 version = "1.0-SNAPSHOT"
 
 buildscript {
@@ -8,8 +8,8 @@ buildscript {
     }
 
     dependencies {
-        classpath("com.android.tools.build:gradle:9.3.1")
-        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:2.3.21")
+        classpath("com.android.tools.build:gradle:9.1.0")
+        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:2.4.0")
     }
 }
 
@@ -22,11 +22,19 @@ allprojects {
 
 plugins {
     id("com.android.library")
-    id("kotlin-android")
+}
+
+// Self-contained buildscript classpath above means this doesn't depend on the
+// consuming app having declared org.jetbrains.kotlin.android anywhere — applying
+// it transitively via Flutter's Gradle plugin isn't reliable under every
+// AGP/Gradle declarative plugins{} configuration.
+val agpMajor = com.android.Version.ANDROID_GRADLE_PLUGIN_VERSION.substringBefore('.').toInt()
+if (agpMajor < 9) {
+    apply(plugin = "org.jetbrains.kotlin.android")
 }
 
 android {
-    namespace = "com.amit.filesaverplus"
+    namespace = "com.therivanta.filesaverplus"
 
     compileSdk = 37
 

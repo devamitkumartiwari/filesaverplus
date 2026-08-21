@@ -89,7 +89,7 @@ class _DemoPageState extends State<DemoPage> {
   Future<void> _saveSingleJson() => _run(() async {
     final data = jsonEncode({
       'plugin': 'filesaverplus',
-      'version': '0.1.0',
+      'version': '1.0.0',
       'platforms': ['android', 'ios', 'web', 'windows', 'linux', 'macos'],
       'savedAt': DateTime.now().toIso8601String(),
     });

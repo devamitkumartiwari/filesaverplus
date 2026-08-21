@@ -8,7 +8,7 @@
 PRODUCT_NAME = filesaverplus_example
 
 // The application's bundle identifier
-PRODUCT_BUNDLE_IDENTIFIER = com.amit.filesaverplusExample
+PRODUCT_BUNDLE_IDENTIFIER = com.therivanta.filesaverplusExample
 
 // The copyright displayed in application information
-PRODUCT_COPYRIGHT = Copyright © 2026 com.amit. All rights reserved.
+PRODUCT_COPYRIGHT = Copyright © 2026 com.therivanta. All rights reserved.

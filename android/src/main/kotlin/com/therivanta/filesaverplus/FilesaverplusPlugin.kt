@@ -1,4 +1,4 @@
-package com.amit.filesaverplus
+package com.therivanta.filesaverplus
 
 import android.Manifest
 import android.app.Activity
