@@ -38,19 +38,6 @@
     and iOS.
   * `saveMultipleFiles` always reports `ArgumentError` through the returned `Future`.
 * macOS: added a privacy manifest (`PrivacyInfo.xcprivacy`), matching iOS.
-* Example app:
-  * Redesigned with Material 3 (`package:material_ui`) and light and dark themes. It now
-    has several pages, like local_biometric's example:
-    * Home: platform status, where files go, and links to each feature.
-    * Single file: text, HTML, JSON, CSV or a PNG image, with a preview.
-    * Multiple files: pick files and optionally save each one twice to show duplicate renaming.
-    * Custom file: type your own name, MIME type and content to see sanitizing and errors.
-    * History: every save from the session.
-  * Swift Package Manager only (no Podfile).
-  * New lightweight icon, including an Android adaptive and themed icon. Icons shrink from
-    264 KB to about 30 KB. The app is now named "FileSaverPlus".
-  * Fixed the widget test, which checked for text that didn't exist.
-* No changes to the public Dart API.
 
 ## 1.0.0
 
