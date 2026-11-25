@@ -109,23 +109,55 @@ public class FilesaverplusPlugin: NSObject, FlutterPlugin {
         }
     }
 
+    /// Writes every file into a fresh, per-call folder inside the temporary
+    /// directory, so repeated or concurrent calls never overwrite each other.
     private func createTemporaryFiles(dataList: [FlutterStandardTypedData],
                                       fileNameList: [String]) throws -> [URL] {
-        let tmpFolder = URL(fileURLWithPath: NSTemporaryDirectory(), isDirectory: true)
+        let folder = FileManager.default.temporaryDirectory
+            .appendingPathComponent("filesaverplus", isDirectory: true)
+            .appendingPathComponent(UUID().uuidString, isDirectory: true)
+        try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
+
+        var used = Set<String>()
         return try dataList.indices.map { i in
-            let url = tmpFolder.appendingPathComponent(fileNameList[i])
+            let name = Self.uniqueName(Self.sanitize(fileNameList[i]), used: &used)
+            let url = folder.appendingPathComponent(name, isDirectory: false)
             do {
                 try dataList[i].data.write(to: url, options: .atomic)
                 return url
             } catch {
-                throw FileSavingError.fileWriteError(fileName: fileNameList[i],
-                                                     underlyingError: error)
+                try? FileManager.default.removeItem(at: folder)
+                throw FileSavingError.fileWriteError(fileName: name, underlyingError: error)
             }
         }
     }
 
+    /// Replaces characters that are illegal in file names; never returns an empty name.
+    static func sanitize(_ name: String) -> String {
+        let illegal = CharacterSet(charactersIn: "/\\:*?\"<>|").union(.controlCharacters)
+        let cleaned = name.unicodeScalars
+            .map { illegal.contains($0) ? "_" : String($0) }
+            .joined()
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+            .trimmingCharacters(in: CharacterSet(charactersIn: "."))
+        return cleaned.isEmpty ? "file" : cleaned
+    }
+
+    private static func uniqueName(_ name: String, used: inout Set<String>) -> String {
+        var candidate = name
+        var n = 1
+        let ext = (name as NSString).pathExtension
+        let base = (name as NSString).deletingPathExtension
+        while used.contains(candidate.lowercased()) {
+            n += 1
+            candidate = ext.isEmpty ? "\(base)_\(n)" : "\(base)_\(n).\(ext)"
+        }
+        used.insert(candidate.lowercased())
+        return candidate
+    }
+
     private func presentShareSheet(for urls: [URL], result: @escaping FlutterResult) {
-        guard let rootVC = rootViewController() else {
+        guard let rootVC = topViewController() else {
             cleanupTemporaryFiles(urls: urls)
             result(FlutterError(code: FileSavingError.cannotAccessViewController.errorCode,
                                 message: FileSavingError.cannotAccessViewController.localizedDescription,
@@ -161,7 +193,10 @@ public class FilesaverplusPlugin: NSObject, FlutterPlugin {
         }
     }
 
-    private func rootViewController() -> UIViewController? {
+    /// The view controller to present from: the top of the presentation stack
+    /// in the foreground-active scene. Presenting from the root view controller
+    /// silently fails while another modal (sheet, dialog, picker) is showing.
+    private func topViewController() -> UIViewController? {
         let windowScenes = UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }
 
         // Prefer the foreground-active scene so this behaves correctly when an
@@ -172,12 +207,16 @@ public class FilesaverplusPlugin: NSObject, FlutterPlugin {
         guard let scene else { return nil }
 
         let window = scene.windows.first(where: { $0.isKeyWindow }) ?? scene.windows.first
-        return window?.rootViewController
+        var top = window?.rootViewController
+        while let presented = top?.presentedViewController, !presented.isBeingDismissed {
+            top = presented
+        }
+        return top
     }
 
+    /// Removes the per-call staging folder (and with it every staged file).
     private func cleanupTemporaryFiles(urls: [URL]) {
-        for url in urls {
-            try? FileManager.default.removeItem(at: url)
-        }
+        guard let folder = urls.first?.deletingLastPathComponent() else { return }
+        try? FileManager.default.removeItem(at: folder)
     }
 }

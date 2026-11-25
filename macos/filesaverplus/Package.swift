@@ -1,10 +1,12 @@
 // swift-tools-version: 5.9
+// The swift-tools-version declares the minimum version of Swift required to build this package.
+
 import PackageDescription
 
 let package = Package(
     name: "filesaverplus",
     platforms: [
-        .macOS("10.14")
+        .macOS("12.0")
     ],
     products: [
         .library(name: "filesaverplus", targets: ["filesaverplus"])
@@ -17,6 +19,9 @@ let package = Package(
             name: "filesaverplus",
             dependencies: [
                 .product(name: "FlutterFramework", package: "FlutterFramework")
+            ],
+            resources: [
+                .process("PrivacyInfo.xcprivacy")
             ]
         )
     ]

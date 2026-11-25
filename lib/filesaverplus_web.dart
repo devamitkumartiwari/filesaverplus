@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:js_interop';
 import 'dart:typed_data';
 
@@ -8,6 +9,7 @@ import 'filesaverplus_platform_interface.dart';
 
 /// Web implementation of [FileSaverPlusPlatform] using browser Blob downloads.
 class FileSaverPlusWeb extends FileSaverPlusPlatform {
+  /// Registers this class as the default [FileSaverPlusPlatform] instance.
   static void registerWith(Registrar registrar) {
     FileSaverPlusPlatform.instance = FileSaverPlusWeb();
   }
@@ -39,7 +41,15 @@ class FileSaverPlusWeb extends FileSaverPlusPlatform {
       web.document.body?.append(anchor);
       anchor.click();
       anchor.remove();
-      web.URL.revokeObjectURL(url);
+
+      // Revoking the URL immediately after click() can cancel the download
+      // in Safari and Firefox, so give the browser time to start it.
+      unawaited(
+        Future<void>.delayed(
+          const Duration(seconds: 30),
+          () => web.URL.revokeObjectURL(url),
+        ),
+      );
 
       results.add('download_triggered:${fileNameList[i]}');
 

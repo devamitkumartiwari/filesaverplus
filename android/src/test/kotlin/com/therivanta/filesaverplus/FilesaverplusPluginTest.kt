@@ -2,26 +2,57 @@ package com.therivanta.filesaverplus
 
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
+import java.io.File
+import java.nio.file.Files
 import kotlin.test.Test
+import kotlin.test.assertEquals
 import org.mockito.Mockito
 
 /*
- * This demonstrates a simple unit test of the Kotlin portion of this plugin's implementation.
+ * Unit tests for the Kotlin side of the plugin.
  *
- * Once you have built the plugin's example app, you can run these tests from the command
- * line by running `./gradlew testDebugUnitTest` in the `example/android/` directory, or
- * you can run them directly from IDEs that support JUnit such as Android Studio.
+ * Run from the example app: `cd example/android && ./gradlew :filesaverplus:testDebugUnitTest`.
  */
-
 internal class FilesaverplusPluginTest {
-  @Test
-  fun onMethodCall_getPlatformVersion_returnsExpectedValue() {
-    val plugin = FilesaverplusPlugin()
 
-    val call = MethodCall("getPlatformVersion", null)
-    val mockResult: MethodChannel.Result = Mockito.mock(MethodChannel.Result::class.java)
-    plugin.onMethodCall(call, mockResult)
+    @Test
+    fun onMethodCall_getPlatformVersion_returnsExpectedValue() {
+        val plugin = FilesaverplusPlugin()
+        val result: MethodChannel.Result = Mockito.mock(MethodChannel.Result::class.java)
 
-    Mockito.verify(mockResult).success("Android " + android.os.Build.VERSION.RELEASE)
-  }
+        plugin.onMethodCall(MethodCall("getPlatformVersion", null), result)
+
+        Mockito.verify(result).success("Android " + android.os.Build.VERSION.RELEASE)
+    }
+
+    @Test
+    fun onMethodCall_unknownMethod_isNotImplemented() {
+        val plugin = FilesaverplusPlugin()
+        val result: MethodChannel.Result = Mockito.mock(MethodChannel.Result::class.java)
+
+        plugin.onMethodCall(MethodCall("nope", null), result)
+
+        Mockito.verify(result).notImplemented()
+    }
+
+    @Test
+    fun sanitizeFileName_replacesIllegalCharacters() {
+        assertEquals("a_b_c.txt", FilesaverplusPlugin.sanitizeFileName("a/b:c.txt"))
+        assertEquals("file", FilesaverplusPlugin.sanitizeFileName("  ..  "))
+        assertEquals("report.pdf", FilesaverplusPlugin.sanitizeFileName(" report.pdf "))
+    }
+
+    @Test
+    fun uniqueFile_addsCounterWhenNameIsTaken() {
+        val dir: File = Files.createTempDirectory("fsp").toFile()
+        try {
+            assertEquals("data.txt", FilesaverplusPlugin.uniqueFile(dir, "data.txt").name)
+            File(dir, "data.txt").writeText("x")
+            assertEquals("data (1).txt", FilesaverplusPlugin.uniqueFile(dir, "data.txt").name)
+            File(dir, "data (1).txt").writeText("x")
+            assertEquals("data (2).txt", FilesaverplusPlugin.uniqueFile(dir, "data.txt").name)
+        } finally {
+            dir.deleteRecursively()
+        }
+    }
 }

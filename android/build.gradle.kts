@@ -1,5 +1,5 @@
 group = "com.therivanta.filesaverplus"
-version = "1.0-SNAPSHOT"
+version = "1.1.0"
 
 buildscript {
     repositories {
@@ -8,8 +8,8 @@ buildscript {
     }
 
     dependencies {
-        classpath("com.android.tools.build:gradle:9.1.0")
-        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:2.4.0")
+        classpath("com.android.tools.build:gradle:9.3.1")
+        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:2.4.20")
     }
 }
 
@@ -24,12 +24,15 @@ plugins {
     id("com.android.library")
 }
 
-// Self-contained buildscript classpath above means this doesn't depend on the
-// consuming app having declared org.jetbrains.kotlin.android anywhere — applying
-// it transitively via Flutter's Gradle plugin isn't reliable under every
-// AGP/Gradle declarative plugins{} configuration.
-val agpMajor = com.android.Version.ANDROID_GRADLE_PLUGIN_VERSION.substringBefore('.').toInt()
-if (agpMajor < 9) {
+// AGP 9+ compiles Kotlin itself ("built-in Kotlin"), on by default unless the host app sets
+// `android.builtInKotlin=false` (Flutter 3.50's app template still does). Applying the Kotlin
+// Gradle Plugin on top of built-in Kotlin is what Flutter warns will become a build failure, but
+// apps on AGP 8, or with built-in Kotlin disabled, still need KGP to compile this plugin's Kotlin
+// sources. So apply KGP only when built-in Kotlin isn't active.
+val agpMajorVersion = com.android.Version.ANDROID_GRADLE_PLUGIN_VERSION.substringBefore('.').toInt()
+val builtInKotlinEnabled = agpMajorVersion >= 9 &&
+    (findProperty("android.builtInKotlin")?.toString()?.toBooleanStrictOrNull() ?: true)
+if (!builtInKotlinEnabled) {
     apply(plugin = "org.jetbrains.kotlin.android")
 }
 
@@ -53,15 +56,12 @@ android {
     }
 
     defaultConfig {
-        minSdk = 28
-    }
-
-    dependencies {
-        testImplementation("org.jetbrains.kotlin:kotlin-test")
-        testImplementation("org.mockito:mockito-core:5.0.0")
+        // Android 7.0. The plugin declares no permissions on any API level.
+        minSdk = 24
     }
 
     testOptions {
+        unitTests.isReturnDefaultValues = true
         unitTests.all {
             it.useJUnitPlatform()
 
@@ -73,8 +73,15 @@ android {
     }
 }
 
-kotlin {
+// Configured through the compile tasks rather than the `kotlin {}` extension accessor, which
+// only exists when KGP is applied in the `plugins {}` block; this works in both modes above.
+tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
     compilerOptions {
-        jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17
+        jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)
     }
+}
+
+dependencies {
+    testImplementation("org.jetbrains.kotlin:kotlin-test")
+    testImplementation("org.mockito:mockito-core:5.14.2")
 }

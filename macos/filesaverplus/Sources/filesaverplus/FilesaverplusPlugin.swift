@@ -82,7 +82,7 @@ public class FilesaverplusPlugin: NSObject, FlutterPlugin {
         }
 
         let panel = NSSavePanel()
-        panel.nameFieldStringValue = fileNameList[index]
+        panel.nameFieldStringValue = Self.sanitize(fileNameList[index])
         panel.canCreateDirectories = true
         panel.prompt = "Save"
 
@@ -102,7 +102,7 @@ public class FilesaverplusPlugin: NSObject, FlutterPlugin {
             }
 
             do {
-                try dataList[index].data.write(to: url)
+                try dataList[index].data.write(to: url, options: .atomic)
                 var paths = savedPaths
                 paths.append(url.path)
                 self.saveFilesSequentially(
@@ -118,5 +118,18 @@ public class FilesaverplusPlugin: NSObject, FlutterPlugin {
                                     details: nil))
             }
         }
+    }
+
+    // MARK: - Helpers
+
+    /// Replaces characters that are illegal in file names; never returns an empty name.
+    static func sanitize(_ name: String) -> String {
+        let illegal = CharacterSet(charactersIn: "/\\:*?\"<>|").union(.controlCharacters)
+        let cleaned = name.unicodeScalars
+            .map { illegal.contains($0) ? "_" : String($0) }
+            .joined()
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+            .trimmingCharacters(in: CharacterSet(charactersIn: "."))
+        return cleaned.isEmpty ? "file" : cleaned
     }
 }

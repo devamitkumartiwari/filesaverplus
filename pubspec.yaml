@@ -1,13 +1,13 @@
 name: filesaverplus
-description: "FileSaverPlus is a Flutter plugin for saving files to device storage with cross-platform support for Android, iOS, Web, Windows, Linux, and macOS."
-version: 1.0.0
+description: "Save files to the user's device on Android, iOS, macOS, Web, Windows and Linux. No permissions required. Swift Package Manager only on iOS/macOS."
+version: 1.1.0
 homepage: https://github.com/devamitkumartiwari/filesaverplus
 repository: https://github.com/devamitkumartiwari/filesaverplus
 issue_tracker: https://github.com/devamitkumartiwari/filesaverplus/issues
 
 environment:
-  sdk: '>=3.13.0 <4.0.0'
-  flutter: '>=3.24.0'
+  sdk: ^3.14.0
+  flutter: '>=3.50.0'
 
 dependencies:
   flutter:
@@ -16,7 +16,7 @@ dependencies:
     sdk: flutter
   plugin_platform_interface: ^2.1.8
   path_provider: ^2.1.6
-  web: ^1.1.1
+  web: ^1.1.2
 
 dev_dependencies:
   flutter_test:

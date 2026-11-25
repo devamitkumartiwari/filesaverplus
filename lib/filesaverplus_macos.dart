@@ -2,11 +2,12 @@ import 'package:flutter/services.dart';
 
 import 'filesaverplus_platform_interface.dart';
 
-/// macOS implementation of [FileSaverPlusPlatform] via MethodChannel.
+/// macOS implementation of [FileSaverPlusPlatform] via a method channel.
 ///
-/// Uses NSSavePanel on the native side so the user can choose where each file
-/// is saved, mirroring the iOS share-sheet UX on the desktop.
+/// Shows an `NSSavePanel` for each file so the user chooses where it goes.
+/// A file the user cancels is reported as `cancelled:<fileName>`.
 class FileSaverPlusMacOS extends FileSaverPlusPlatform {
+  /// Registers this class as the default [FileSaverPlusPlatform] instance.
   static void registerWith() {
     FileSaverPlusPlatform.instance = FileSaverPlusMacOS();
   }
@@ -14,9 +15,8 @@ class FileSaverPlusMacOS extends FileSaverPlusPlatform {
   final MethodChannel _channel = const MethodChannel('filesaverplus');
 
   @override
-  Future<String?> get platformVersion async {
-    return await _channel.invokeMethod<String>('getPlatformVersion');
-  }
+  Future<String?> get platformVersion =>
+      _channel.invokeMethod<String>('getPlatformVersion');
 
   @override
   Future<int?> get batteryPercentage async => null;
@@ -27,14 +27,14 @@ class FileSaverPlusMacOS extends FileSaverPlusPlatform {
     required List<String> fileNameList,
     required List<String> mimeTypeList,
   }) async {
-    final result = await _channel.invokeMethod<List<dynamic>>(
+    final result = await _channel.invokeListMethod<String>(
       'saveMultipleFiles',
-      {
+      <String, Object>{
         'dataList': dataList,
         'fileNameList': fileNameList,
         'mimeTypeList': mimeTypeList,
       },
     );
-    return result?.cast<String>() ?? [];
+    return result ?? const <String>[];
   }
 }

@@ -1,3 +1,3 @@
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-  package="com.therivanta.filesaverplus">
-</manifest>
+<!-- filesaverplus declares no permissions. Android 10+ saves through MediaStore
+     Downloads and Android 7-9 saves to the app-specific folder; neither needs one. -->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" />

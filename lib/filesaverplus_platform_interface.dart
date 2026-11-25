@@ -4,7 +4,9 @@ import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 
 import 'filesaverplus_method_channel.dart';
 
+/// The interface that platform implementations of filesaverplus extend.
 abstract class FileSaverPlusPlatform extends PlatformInterface {
+  /// Constructs a FileSaverPlusPlatform.
   FileSaverPlusPlatform() : super(token: _token);
 
   static final Object _token = Object();
@@ -33,15 +35,14 @@ abstract class FileSaverPlusPlatform extends PlatformInterface {
     throw UnimplementedError('batteryPercentage() has not been implemented.');
   }
 
-  /// Saves multiple files using platform-specific implementation.
+  /// Saves multiple files using the platform-specific implementation.
   ///
-  /// Returns a list of saved file paths (or identifiers) for each file.
-  /// On iOS the paths are temporary staging locations; on Web they indicate
-  /// that a browser download was triggered.
+  /// Returns one entry per file. See `FileSaverPlus.saveMultipleFiles` for
+  /// what each entry means on each platform.
   ///
-  /// [dataList]: List of file data in bytes.
-  /// [fileNameList]: List of file names with extensions.
-  /// [mimeTypeList]: List of corresponding MIME types.
+  /// [dataList]: file contents. [fileNameList]: file names with extensions.
+  /// [mimeTypeList]: matching MIME types. All three have the same length and
+  /// have already been validated by `FileSaverPlus`.
   Future<List<String>> saveMultipleFiles({
     required List<Uint8List> dataList,
     required List<String> fileNameList,

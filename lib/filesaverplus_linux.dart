@@ -1,12 +1,15 @@
 import 'dart:io';
 import 'dart:typed_data';
 
-import 'package:path_provider/path_provider.dart';
-
 import 'filesaverplus_platform_interface.dart';
+import 'src/desktop_writer.dart';
 
-/// Linux implementation of [FileSaverPlusPlatform] using dart:io.
+/// Linux implementation of [FileSaverPlusPlatform] using `dart:io`.
+///
+/// Files are written to the user's Downloads folder. Existing files are never
+/// overwritten; a ` (1)`, ` (2)`, ... suffix is added instead.
 class FileSaverPlusLinux extends FileSaverPlusPlatform {
+  /// Registers this class as the default [FileSaverPlusPlatform] instance.
   static void registerWith() {
     FileSaverPlusPlatform.instance = FileSaverPlusLinux();
   }
@@ -23,22 +26,7 @@ class FileSaverPlusLinux extends FileSaverPlusPlatform {
     required List<Uint8List> dataList,
     required List<String> fileNameList,
     required List<String> mimeTypeList,
-  }) async {
-    final downloadsDir = await getDownloadsDirectory();
-    if (downloadsDir == null) {
-      throw StateError('Could not locate the Downloads directory.');
-    }
-
-    final results = <String>[];
-
-    for (int i = 0; i < dataList.length; i++) {
-      final file = File(
-        '${downloadsDir.path}${Platform.pathSeparator}${fileNameList[i]}',
-      );
-      await file.writeAsBytes(dataList[i], flush: true);
-      results.add(file.path);
-    }
-
-    return results;
+  }) {
+    return writeToDownloads(dataList: dataList, fileNameList: fileNameList);
   }
 }
