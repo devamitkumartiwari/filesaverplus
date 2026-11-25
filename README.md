@@ -252,8 +252,6 @@ Native failures come back as a `PlatformException` with one of these codes:
 - **Smoother and safer:** Android writes off the UI thread, existing files are never
   overwritten, names are cleaned on every platform, and the iOS share sheet works on top of
   other modals.
-- **Material 3 example app** with light and dark themes and a new icon.
-- No changes to the Dart API.
 
 See [CHANGELOG.md](CHANGELOG.md) for everything.
 
